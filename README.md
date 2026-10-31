@@ -16,6 +16,9 @@ Native Kotlin, Jetpack Compose and Material 3. All data stays on the device.
 - **Archive.** Grid and Timeline views with Days to Complete badges. Tap a book to reveal Favorite and
   Delete. Finishing a book offers Undo, and any book can be restored to active reading.
 - **Notes.** Each book has its own Notes tab for notes, takeaways and quotes.
+- **Backup.** Stats can export everything to one `.zip` file and import it back, replacing what's in
+  the app. An import can be undone right after. Files are not encrypted, and nothing leaves the phone
+  unless you save the file somewhere that syncs.
 
 ## Build
 
@@ -39,7 +42,7 @@ The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 
 | Layer | Where | What it does |
 |---|---|---|
-| Data | `data/` | Room entities, DAOs and `BookRepository`. `ReadingSettings` holds goals. |
+| Data | `data/` | Room entities, DAOs and `BookRepository`. `ReadingSettings` holds goals. `BackupManager` exports and imports the `BackupFormat` zip. |
 | Rules | `ui/stats/ReadingAnalytics.kt`, `ui/challenges/ChallengeRules.kt`, `ChallengeProgress.kt` | Pure functions, unit tested. |
 | State | `ActiveBooksViewModel`, `ReadingInsightsViewModel` | `StateFlow`s derived from Room. |
 | UI | `ui/hub`, `ui/stats`, `ui/challenges`, `ui/library` | Compose screens, wired in `ui/FolioFlowNavigation.kt`. |

@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.booktracker.ui.FolioFlowNavigation
 import com.booktracker.ui.hub.ActiveBooksViewModel
+import com.booktracker.ui.stats.BackupViewModel
 import com.booktracker.ui.stats.ReadingInsightsViewModel
 import com.booktracker.ui.theme.BookTrackerTheme
 
@@ -23,9 +24,14 @@ class MainActivity : ComponentActivity() {
             val app = application as FolioFlowApp
             ReadingInsightsViewModel(app.repository, app.settings)
         }
+        initializer {
+            val app = application as FolioFlowApp
+            BackupViewModel(app.backup, app.settings)
+        }
     }
     private val books by viewModels<ActiveBooksViewModel> { factory }
     private val insights by viewModels<ReadingInsightsViewModel> { factory }
+    private val backup by viewModels<BackupViewModel> { factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -36,7 +42,7 @@ class MainActivity : ComponentActivity() {
                 onPauseOrDispose { }
             }
             BookTrackerTheme {
-                FolioFlowNavigation(books, insights)
+                FolioFlowNavigation(books, insights, backup)
             }
         }
     }

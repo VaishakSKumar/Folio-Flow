@@ -45,6 +45,9 @@ import com.booktracker.ui.library.BookDetailActions
 import com.booktracker.ui.library.BookDetailScreen
 import com.booktracker.ui.library.BookDetailTab
 import com.booktracker.ui.stats.ArchiveActions
+import com.booktracker.ui.stats.BackupExportedScreen
+import com.booktracker.ui.stats.BackupHost
+import com.booktracker.ui.stats.BackupViewModel
 import com.booktracker.ui.stats.ReadingInsightsViewModel
 import com.booktracker.ui.stats.StatsHistoryScreen
 import com.booktracker.ui.stats.StatsTab
@@ -57,6 +60,7 @@ private object Routes {
     const val STATS = "stats"
     const val ADD_BOOK = "add-book"
     const val HABIT_PLAN = "habit-plan"
+    const val BACKUP_EXPORTED = "backup-exported"
     const val BOOK = "book/{id}/{tab}"
     fun book(id: Long, tab: BookDetailTab) = "book/$id/${tab.name}"
 }
@@ -71,7 +75,11 @@ private enum class Destination(val route: String, val label: String, val icon: I
 private const val FADE_MILLIS = 220
 
 @Composable
-fun FolioFlowNavigation(books: ActiveBooksViewModel, insightsModel: ReadingInsightsViewModel) {
+fun FolioFlowNavigation(
+    books: ActiveBooksViewModel,
+    insightsModel: ReadingInsightsViewModel,
+    backup: BackupViewModel,
+) {
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val route = backStack?.destination?.route
@@ -93,8 +101,14 @@ fun FolioFlowNavigation(books: ActiveBooksViewModel, insightsModel: ReadingInsig
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             composable(Routes.READ) { ReadRoute(books, insightsModel, navController) }
-            composable(Routes.ARCHIVE) { InsightsRoute(StatsTab.Archive, books, insightsModel, navController) }
-            composable(Routes.STATS) { InsightsRoute(StatsTab.Stats, books, insightsModel, navController) }
+            composable(Routes.ARCHIVE) { InsightsRoute(StatsTab.Archive, books, insightsModel, backup, navController) }
+            composable(Routes.STATS) { InsightsRoute(StatsTab.Stats, books, insightsModel, backup, navController) }
+            composable(Routes.BACKUP_EXPORTED) {
+                val state by backup.state.collectAsStateWithLifecycle()
+                state.exported?.let { exported ->
+                    BackupExportedScreen(exported, onDone = { navController.popBackStack() })
+                }
+            }
             composable(Routes.CHALLENGES) {
                 val insights by insightsModel.insights.collectAsStateWithLifecycle()
                 ChallengesScreen(
@@ -197,28 +211,36 @@ private fun InsightsRoute(
     tab: StatsTab,
     books: ActiveBooksViewModel,
     insightsModel: ReadingInsightsViewModel,
+    backup: BackupViewModel,
     navController: NavHostController,
 ) {
     val insights by insightsModel.insights.collectAsStateWithLifecycle()
     val finished by books.finishedBooks.collectAsStateWithLifecycle()
-    StatsHistoryScreen(
-        state = StatsUiState(
-            averages = insights.averages,
-            days = insights.days,
-            targetPerDay = insights.goals.targetPerDay,
-            currentStreak = insights.challenges.streak,
-            bestStreak = insights.bestStreak,
-            finished = finished,
-        ),
-        tab = tab,
-        cover = { book, modifier -> BookCover(book.coverPath, book.title, book.author, modifier) },
-        archiveActions = ArchiveActions(
-            onOpenBook = { navController.navigate(Routes.book(it, BookDetailTab.Details)) },
-            onToggleFavorite = books::toggleFavorite,
-            onDeleteBook = books::deleteBook,
-        ),
-        modifier = Modifier.statusBarsPadding(),
-    )
+    BackupHost(
+        model = backup,
+        onExported = { navController.navigate(Routes.BACKUP_EXPORTED) },
+        onDataReplaced = books::reloadLastBook,
+    ) { backupCard ->
+        StatsHistoryScreen(
+            state = StatsUiState(
+                averages = insights.averages,
+                days = insights.days,
+                targetPerDay = insights.goals.targetPerDay,
+                currentStreak = insights.challenges.streak,
+                bestStreak = insights.bestStreak,
+                finished = finished,
+            ),
+            tab = tab,
+            cover = { book, modifier -> BookCover(book.coverPath, book.title, book.author, modifier) },
+            archiveActions = ArchiveActions(
+                onOpenBook = { navController.navigate(Routes.book(it, BookDetailTab.Details)) },
+                onToggleFavorite = books::toggleFavorite,
+                onDeleteBook = books::deleteBook,
+            ),
+            backupCard = backupCard,
+            modifier = Modifier.statusBarsPadding(),
+        )
+    }
 }
 
 @Composable
