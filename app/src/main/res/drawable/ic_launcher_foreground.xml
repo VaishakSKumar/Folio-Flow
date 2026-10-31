@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A small stack of three cards, echoing the book deck. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#2F5249"
+        android:pathData="M42,32h24a4,4 0,0 1,4 4v8H38v-8a4,4 0,0 1,4,-4z" />
+    <path
+        android:fillColor="#4A9483"
+        android:pathData="M38,38h32a4,4 0,0 1,4 4v8H34v-8a4,4 0,0 1,4,-4z" />
+    <path
+        android:fillColor="#7FC8B4"
+        android:pathData="M35,45h38a5,5 0,0 1,5 5v22a5,5 0,0 1,-5 5H35a5,5 0,0 1,-5,-5V50a5,5 0,0 1,5,-5z" />
+</vector>
