@@ -128,18 +128,19 @@ fun StatsHistoryScreen(
     tab: StatsTab,
     cover: @Composable (FinishedBook, Modifier) -> Unit,
     archiveActions: ArchiveActions,
+    backupCard: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when (tab) {
-            StatsTab.Stats -> StatsPane(state)
+            StatsTab.Stats -> StatsPane(state, backupCard)
             StatsTab.Archive -> ArchivePane(state.finished, cover, archiveActions)
         }
     }
 }
 
 @Composable
-private fun StatsPane(state: StatsUiState) {
+private fun StatsPane(state: StatsUiState, backupCard: @Composable () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(AveragePeriod.Day) }
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
@@ -162,11 +163,12 @@ private fun StatsPane(state: StatsUiState) {
             TrendCard(average)
         }
         item { HeatmapCard(state) }
+        item { backupCard() }
     }
 }
 
 @Composable
-private fun PaperCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+internal fun PaperCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(
         modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,

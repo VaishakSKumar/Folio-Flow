@@ -21,8 +21,14 @@ interface BookDao {
     @Query("SELECT * FROM books WHERE id = :id")
     suspend fun find(id: Long): BookEntity?
 
+    @Query("SELECT * FROM books")
+    suspend fun all(): List<BookEntity>
+
     @Insert
     suspend fun insert(book: BookEntity): Long
+
+    @Insert
+    suspend fun insertAll(books: List<BookEntity>)
 
     @Query("UPDATE books SET currentPage = :page WHERE id = :id")
     suspend fun setCurrentPage(id: Long, page: Int)
@@ -56,12 +62,21 @@ interface BookDao {
     /** Its sessions and notes go too, through their foreign key cascades. */
     @Query("DELETE FROM books WHERE id = :id")
     suspend fun delete(id: Long)
+
+    @Query("DELETE FROM books")
+    suspend fun deleteAll()
 }
 
 @Dao
 interface ReadingSessionDao {
     @Insert
     suspend fun insert(session: ReadingSessionEntity): Long
+
+    @Insert
+    suspend fun insertAll(sessions: List<ReadingSessionEntity>)
+
+    @Query("SELECT * FROM reading_sessions")
+    suspend fun all(): List<ReadingSessionEntity>
 
     @Query("SELECT * FROM reading_sessions WHERE epochDay >= :fromEpochDay ORDER BY epochDay")
     fun observeSince(fromEpochDay: Long): Flow<List<ReadingSessionEntity>>
@@ -74,6 +89,12 @@ interface BookNoteDao {
 
     @Insert
     suspend fun insert(note: BookNoteEntity): Long
+
+    @Insert
+    suspend fun insertAll(notes: List<BookNoteEntity>)
+
+    @Query("SELECT * FROM book_notes")
+    suspend fun all(): List<BookNoteEntity>
 
     @Query("UPDATE book_notes SET kind = :kind, text = :text, updatedAt = :updatedAt WHERE id = :id")
     suspend fun update(id: Long, kind: NoteKind, text: String, updatedAt: Long)

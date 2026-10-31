@@ -55,13 +55,9 @@ fun BookAddedOverlay(title: String, onFinished: () -> Unit, modifier: Modifier =
     val haptics = LocalHapticFeedback.current
     val finish by rememberUpdatedState(onFinished)
     val appear = remember { Animatable(0f) }
-    val pop = remember { Animatable(0.6f) }
-    val tick = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         launch { appear.animateTo(1f, tween(160)) }
-        launch { pop.animateTo(1f, spring(dampingRatio = 0.5f)) }
-        launch { tick.animateTo(1f, tween(360, delayMillis = 120, easing = FastOutSlowInEasing)) }
         delay(OVERLAY_MILLIS)
         finish()
     }
@@ -82,31 +78,7 @@ fun BookAddedOverlay(title: String, onFinished: () -> Unit, modifier: Modifier =
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Canvas(
-                Modifier
-                    .padding(bottom = 16.dp)
-                    .size(112.dp)
-                    .graphicsLayer {
-                        scaleX = pop.value
-                        scaleY = pop.value
-                    }
-                    .clip(CircleShape)
-                    .background(colors.primary),
-            ) {
-                val full = Path().apply {
-                    moveTo(size.width * 0.28f, size.height * 0.52f)
-                    lineTo(size.width * 0.44f, size.height * 0.68f)
-                    lineTo(size.width * 0.74f, size.height * 0.34f)
-                }
-                val measure = PathMeasure().apply { setPath(full, false) }
-                val drawn = Path()
-                measure.getSegment(0f, measure.length * tick.value, drawn, true)
-                drawPath(
-                    drawn,
-                    colors.onPrimary,
-                    style = Stroke(10.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
-                )
-            }
+            AnimatedTick(Modifier.padding(bottom = 16.dp).size(112.dp))
             Text(
                 "Added to Reading Now",
                 style = MaterialTheme.typography.headlineSmall,
@@ -121,5 +93,40 @@ fun BookAddedOverlay(title: String, onFinished: () -> Unit, modifier: Modifier =
                 overflow = TextOverflow.Ellipsis,
             )
         }
+    }
+}
+
+/** A disc that pops in while its tick draws itself. */
+@Composable
+fun AnimatedTick(modifier: Modifier = Modifier) {
+    val pop = remember { Animatable(0.6f) }
+    val tick = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        launch { pop.animateTo(1f, spring(dampingRatio = 0.5f)) }
+        launch { tick.animateTo(1f, tween(360, delayMillis = 120, easing = FastOutSlowInEasing)) }
+    }
+    val colors = MaterialTheme.colorScheme
+    Canvas(
+        modifier
+            .graphicsLayer {
+                scaleX = pop.value
+                scaleY = pop.value
+            }
+            .clip(CircleShape)
+            .background(colors.primary),
+    ) {
+        val full = Path().apply {
+            moveTo(size.width * 0.28f, size.height * 0.52f)
+            lineTo(size.width * 0.44f, size.height * 0.68f)
+            lineTo(size.width * 0.74f, size.height * 0.34f)
+        }
+        val measure = PathMeasure().apply { setPath(full, false) }
+        val drawn = Path()
+        measure.getSegment(0f, measure.length * tick.value, drawn, true)
+        drawPath(
+            drawn,
+            colors.onPrimary,
+            style = Stroke(10.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
+        )
     }
 }

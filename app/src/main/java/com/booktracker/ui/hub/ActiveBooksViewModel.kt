@@ -57,6 +57,11 @@ class ActiveBooksViewModel(
         settings.lastBookId = bookId
     }
 
+    /** An import can change the saved book, so the deck picks it up from settings. */
+    fun reloadLastBook() {
+        lastBookId.value = settings.lastBookId
+    }
+
     suspend fun addBook(book: NewBook): Long {
         val id = repository.addBook(
             title = book.title,

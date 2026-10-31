@@ -33,6 +33,9 @@ class ReadingSettings(context: Context) {
     )
     val goals: StateFlow<ReadingGoals> = _goals
 
+    private val _lastBackupAt = MutableStateFlow(prefs.getLong(KEY_LAST_BACKUP, NEVER).takeIf { it != NEVER })
+    val lastBackupAt: StateFlow<Long?> = _lastBackupAt
+
     var lastBookId: Long?
         get() = prefs.getLong(KEY_LAST_BOOK, NO_BOOK).takeIf { it != NO_BOOK }
         set(value) = prefs.edit { putLong(KEY_LAST_BOOK, value ?: NO_BOOK) }
@@ -59,11 +62,29 @@ class ReadingSettings(context: Context) {
         prefs.edit { putString(KEY_BUSY_UNTIL, date?.toString()) }
     }
 
+    fun setLastBackupAt(millis: Long) {
+        _lastBackupAt.value = millis
+        prefs.edit { putLong(KEY_LAST_BACKUP, millis) }
+    }
+
+    /** Importing sets every goal at once, so the rest day limit in [toggleRestDay] doesn't apply. */
+    fun replaceWith(goals: ReadingGoals, bookId: Long?) {
+        _goals.value = goals
+        lastBookId = bookId
+        prefs.edit {
+            putInt(KEY_TARGET, goals.targetPerDay)
+            putStringSet(KEY_REST_DAYS, goals.restDays.map { it.name }.toSet())
+            putString(KEY_BUSY_UNTIL, goals.busyUntil?.toString())
+        }
+    }
+
     private companion object {
         const val KEY_TARGET = "target_per_day"
         const val KEY_REST_DAYS = "rest_days"
         const val KEY_BUSY_UNTIL = "busy_until"
         const val KEY_LAST_BOOK = "last_book"
+        const val KEY_LAST_BACKUP = "last_backup"
         const val NO_BOOK = -1L
+        const val NEVER = -1L
     }
 }
