@@ -108,7 +108,7 @@ fun CoverUploadSheet(
         }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = com.booktracker.ui.theme.SurfaceTone) {
         Column(
             Modifier.padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),

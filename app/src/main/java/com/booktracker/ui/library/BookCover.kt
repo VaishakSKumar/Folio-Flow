@@ -12,6 +12,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import com.booktracker.ui.theme.Leather
+import com.booktracker.ui.theme.tunedAccent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,6 +63,16 @@ fun BookCover(coverPath: String?, title: String, author: String, modifier: Modif
             }
         }
     }
+}
+
+/**
+ * The colour a book lights the room with: its cover's Palette colour, its leather's colour when it
+ * has no image, or leather brown when the image had no usable colour. Always tuned for the dark.
+ */
+fun coverAccent(coverPath: String?, title: String, glowColor: Int?): Color = when {
+    coverPath == null -> tunedAccent(CoverTexture.forTitle(title).glow)
+    glowColor != null -> tunedAccent(Color(glowColor))
+    else -> Leather
 }
 
 /** Photo picker access can expire, so saved covers are copied into the app's own storage. */

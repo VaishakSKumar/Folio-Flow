@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A cream book with tiny arms and legs, holding up a huge stack of pages, with stars, sparkles
+     and flying pages bursting on the viewer's left. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="280dp"
+    android:height="280dp"
+    android:viewportWidth="280"
+    android:viewportHeight="280">
+
+    <!-- Shadow on the floor -->
+    <path android:fillColor="#21000000" android:pathData="M92,248a58,8 0 1,0 116,0a58,8 0 1,0 -116,0" />
+
+    <!-- Gold stars -->
+    <group android:translateX="40" android:translateY="70" android:scaleX="1.3" android:scaleY="1.3">
+        <path android:fillColor="#F2C14E" android:strokeColor="#C9962A" android:strokeWidth="1.2" android:strokeLineJoin="round"
+            android:pathData="M0,-10 L2.9,-4 9.5,-3.1 4.7,1.5 5.9,8.1 0,5 -5.9,8.1 -4.7,1.5 -9.5,-3.1 -2.9,-4 Z" />
+    </group>
+    <group android:translateX="24" android:translateY="128" android:scaleX="0.9" android:scaleY="0.9">
+        <path android:fillColor="#F2C14E" android:strokeColor="#C9962A" android:strokeWidth="1.5" android:strokeLineJoin="round"
+            android:pathData="M0,-10 L2.9,-4 9.5,-3.1 4.7,1.5 5.9,8.1 0,5 -5.9,8.1 -4.7,1.5 -9.5,-3.1 -2.9,-4 Z" />
+    </group>
+    <group android:translateX="62" android:translateY="182" android:scaleX="1.1" android:scaleY="1.1">
+        <path android:fillColor="#F2C14E" android:strokeColor="#C9962A" android:strokeWidth="1.4" android:strokeLineJoin="round"
+            android:pathData="M0,-10 L2.9,-4 9.5,-3.1 4.7,1.5 5.9,8.1 0,5 -5.9,8.1 -4.7,1.5 -9.5,-3.1 -2.9,-4 Z" />
+    </group>
+    <group android:translateX="70" android:translateY="30" android:scaleX="0.7" android:scaleY="0.7">
+        <path android:fillColor="#F2C14E" android:strokeColor="#C9962A" android:strokeWidth="2" android:strokeLineJoin="round"
+            android:pathData="M0,-10 L2.9,-4 9.5,-3.1 4.7,1.5 5.9,8.1 0,5 -5.9,8.1 -4.7,1.5 -9.5,-3.1 -2.9,-4 Z" />
+    </group>
+
+    <!-- Sparkles -->
+    <group android:translateX="66" android:translateY="108">
+        <path android:fillColor="#F7D774" android:pathData="M0,-8 Q1,-1 8,0 Q1,1 0,8 Q-1,1 -8,0 Q-1,-1 0,-8Z" />
+    </group>
+    <group android:translateX="30" android:translateY="92" android:scaleX="0.6" android:scaleY="0.6">
+        <path android:fillColor="#F7D774" android:pathData="M0,-8 Q1,-1 8,0 Q1,1 0,8 Q-1,1 -8,0 Q-1,-1 0,-8Z" />
+    </group>
+    <group android:translateX="34" android:translateY="210" android:scaleX="0.8" android:scaleY="0.8">
+        <path android:fillColor="#F7D774" android:pathData="M0,-8 Q1,-1 8,0 Q1,1 0,8 Q-1,1 -8,0 Q-1,-1 0,-8Z" />
+    </group>
+    <group android:translateX="86" android:translateY="150" android:scaleX="0.5" android:scaleY="0.5">
+        <path android:fillColor="#F7D774" android:pathData="M0,-8 Q1,-1 8,0 Q1,1 0,8 Q-1,1 -8,0 Q-1,-1 0,-8Z" />
+    </group>
+
+    <!-- Flying pages -->
+    <group android:translateX="18" android:translateY="40" android:rotation="-24">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="1.5"
+            android:pathData="M2,0h18a2,2 0 0,1 2,2v24a2,2 0 0,1 -2,2h-18a2,2 0 0,1 -2,-2v-24a2,2 0 0,1 2,-2z" />
+        <path android:strokeColor="#3A2E26" android:strokeWidth="1.5" android:pathData="M5,9h12M5,14h12M5,19h8" />
+    </group>
+    <group android:translateX="52" android:translateY="140" android:rotation="18">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="1.5"
+            android:pathData="M2,0h14a2,2 0 0,1 2,2v20a2,2 0 0,1 -2,2h-14a2,2 0 0,1 -2,-2v-20a2,2 0 0,1 2,-2z" />
+        <path android:strokeColor="#3A2E26" android:strokeWidth="1.5" android:pathData="M4,8h10M4,13h10M4,18h6" />
+    </group>
+    <group android:translateX="10" android:translateY="160" android:rotation="-38">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="1.5"
+            android:pathData="M2,0h12a2,2 0 0,1 2,2v17a2,2 0 0,1 -2,2h-12a2,2 0 0,1 -2,-2v-17a2,2 0 0,1 2,-2z" />
+        <path android:strokeColor="#3A2E26" android:strokeWidth="1.5" android:pathData="M4,7h8M4,12h8" />
+    </group>
+
+    <!-- The oversized stack of pages, held overhead -->
+    <group android:rotation="-2" android:pivotX="150" android:pivotY="93">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="2"
+            android:pathData="M78,88h144a2,2 0 0,1 2,2v7a2,2 0 0,1 -2,2h-144a2,2 0 0,1 -2,-2v-7a2,2 0 0,1 2,-2z" />
+    </group>
+    <group android:rotation="1.5" android:pivotX="150" android:pivotY="82">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="2"
+            android:pathData="M84,77h138a2,2 0 0,1 2,2v7a2,2 0 0,1 -2,2h-138a2,2 0 0,1 -2,-2v-7a2,2 0 0,1 2,-2z" />
+    </group>
+    <group android:rotation="-1" android:pivotX="150" android:pivotY="71">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="2"
+            android:pathData="M76,66h146a2,2 0 0,1 2,2v7a2,2 0 0,1 -2,2h-146a2,2 0 0,1 -2,-2v-7a2,2 0 0,1 2,-2z" />
+    </group>
+    <group android:rotation="2.5" android:pivotX="150" android:pivotY="60">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="2"
+            android:pathData="M86,55h134a2,2 0 0,1 2,2v7a2,2 0 0,1 -2,2h-134a2,2 0 0,1 -2,-2v-7a2,2 0 0,1 2,-2z" />
+    </group>
+    <group android:rotation="-2.5" android:pivotX="150" android:pivotY="49">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="2"
+            android:pathData="M80,44h142a2,2 0 0,1 2,2v7a2,2 0 0,1 -2,2h-142a2,2 0 0,1 -2,-2v-7a2,2 0 0,1 2,-2z" />
+    </group>
+    <group android:rotation="1" android:pivotX="150" android:pivotY="38">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="2"
+            android:pathData="M90,33h126a2,2 0 0,1 2,2v7a2,2 0 0,1 -2,2h-126a2,2 0 0,1 -2,-2v-7a2,2 0 0,1 2,-2z" />
+    </group>
+    <group android:rotation="-1.5" android:pivotX="150" android:pivotY="27">
+        <path android:fillColor="#FFFDF6" android:strokeColor="#3A2E26" android:strokeWidth="2"
+            android:pathData="M98,22h112a2,2 0 0,1 2,2v7a2,2 0 0,1 -2,2h-112a2,2 0 0,1 -2,-2v-7a2,2 0 0,1 2,-2z" />
+    </group>
+
+    <!-- Arms and legs -->
+    <path android:strokeColor="#3A2E26" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M106,150 Q92,128 88,104" />
+    <path android:strokeColor="#3A2E26" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M194,150 Q208,128 212,104" />
+    <path android:strokeColor="#3A2E26" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M134,216 L130,240" />
+    <path android:strokeColor="#3A2E26" android:strokeWidth="5" android:strokeLineCap="round" android:pathData="M166,216 L170,240" />
+
+    <!-- Hands and feet -->
+    <path android:fillColor="#F4E7C9" android:strokeColor="#3A2E26" android:strokeWidth="2.5" android:pathData="M81,100a7,7 0 1,0 14,0a7,7 0 1,0 -14,0" />
+    <path android:fillColor="#F4E7C9" android:strokeColor="#3A2E26" android:strokeWidth="2.5" android:pathData="M205,100a7,7 0 1,0 14,0a7,7 0 1,0 -14,0" />
+    <path android:fillColor="#F4E7C9" android:strokeColor="#3A2E26" android:strokeWidth="2.5" android:pathData="M115,242a10,5 0 1,0 20,0a10,5 0 1,0 -20,0" />
+    <path android:fillColor="#F4E7C9" android:strokeColor="#3A2E26" android:strokeWidth="2.5" android:pathData="M165,242a10,5 0 1,0 20,0a10,5 0 1,0 -20,0" />
+
+    <!-- The book's body, spine and page edge -->
+    <path android:fillColor="#F4E7C9" android:strokeColor="#3A2E26" android:strokeWidth="3"
+        android:pathData="M118,126h64a18,18 0 0,1 18,18v58a18,18 0 0,1 -18,18h-64a18,18 0 0,1 -18,-18v-58a18,18 0 0,1 18,-18z" />
+    <path android:strokeColor="#D9C397" android:strokeWidth="3" android:pathData="M118,128V218" />
+    <path android:strokeColor="#E6D3A8" android:strokeWidth="2" android:strokeLineCap="round" android:pathData="M190,140V206" />
+
+    <!-- Face -->
+    <path android:fillColor="#3A2E26" android:pathData="M133.5,160a4.5,5.5 0 1,0 9,0a4.5,5.5 0 1,0 -9,0" />
+    <path android:fillColor="#3A2E26" android:pathData="M161.5,160a4.5,5.5 0 1,0 9,0a4.5,5.5 0 1,0 -9,0" />
+    <path android:fillColor="#FFFFFF" android:pathData="M138,158a1.5,1.5 0 1,0 3,0a1.5,1.5 0 1,0 -3,0" />
+    <path android:fillColor="#FFFFFF" android:pathData="M166,158a1.5,1.5 0 1,0 3,0a1.5,1.5 0 1,0 -3,0" />
+    <path android:fillColor="#CCF28C86" android:pathData="M117,176a9,5 0 1,0 18,0a9,5 0 1,0 -18,0" />
+    <path android:fillColor="#CCF28C86" android:pathData="M169,176a9,5 0 1,0 18,0a9,5 0 1,0 -18,0" />
+    <path android:fillColor="#6B2B24" android:strokeColor="#3A2E26" android:strokeWidth="2.5" android:strokeLineJoin="round"
+        android:pathData="M136,172Q152,204 168,172Z" />
+    <path android:fillColor="#E8776B" android:pathData="M144,189Q152,197 160,189Q152,183 144,189Z" />
+</vector>

@@ -1,29 +1,42 @@
 package com.booktracker.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -39,6 +52,7 @@ import com.booktracker.ui.hub.ActiveBooksViewModel
 import com.booktracker.ui.hub.ActiveReadHubScreen
 import com.booktracker.ui.hub.HubActions
 import com.booktracker.ui.hub.HubUiState
+import com.booktracker.ui.hub.accent
 import com.booktracker.ui.library.AddBookScreen
 import com.booktracker.ui.library.BookCover
 import com.booktracker.ui.library.BookDetailActions
@@ -52,6 +66,13 @@ import com.booktracker.ui.stats.ReadingInsightsViewModel
 import com.booktracker.ui.stats.StatsHistoryScreen
 import com.booktracker.ui.stats.StatsTab
 import com.booktracker.ui.stats.StatsUiState
+import com.booktracker.ui.theme.InkFaint
+import com.booktracker.ui.theme.Leather
+import com.booktracker.ui.theme.LocalAccent
+import com.booktracker.ui.theme.RectoIcons
+import com.booktracker.ui.theme.SurfaceTone
+import com.booktracker.ui.theme.pressedWell
+import com.booktracker.ui.theme.raised
 
 private object Routes {
     const val READ = "read"
@@ -66,10 +87,10 @@ private object Routes {
 }
 
 private enum class Destination(val route: String, val label: String, val icon: ImageVector) {
-    Read(Routes.READ, "Read", Icons.Filled.Home),
-    Archive(Routes.ARCHIVE, "Archive", Icons.Filled.List),
-    Challenges(Routes.CHALLENGES, "Challenges", Icons.Filled.Star),
-    Stats(Routes.STATS, "Stats", Icons.Filled.DateRange),
+    Read(Routes.READ, "Hub", RectoIcons.Hub),
+    Archive(Routes.ARCHIVE, "Vault", RectoIcons.Vault),
+    Challenges(Routes.CHALLENGES, "Challenges", RectoIcons.Challenge),
+    Stats(Routes.STATS, "Stats", RectoIcons.Stats),
 }
 
 private const val FADE_MILLIS = 220
@@ -83,14 +104,39 @@ fun FolioFlowNavigation(
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val route = backStack?.destination?.route
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            if (Destination.entries.any { it.route == route }) {
-                BottomBar(route, navController)
-            }
-        },
-    ) { padding ->
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    // The keyboard belongs to the screen whose field was tapped; it never follows to another one.
+    LaunchedEffect(route) {
+        focusManager.clearFocus(force = true)
+        keyboard?.hide()
+    }
+    val activeBooks by books.books.collectAsStateWithLifecycle()
+    val lastBookId by books.lastBookId.collectAsStateWithLifecycle()
+    val frontBook = activeBooks.firstOrNull { it.id == lastBookId } ?: activeBooks.firstOrNull()
+    val accent by animateColorAsState(frontBook?.accent() ?: Leather, tween(400), label = "accent")
+    CompositionLocalProvider(LocalAccent provides accent) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            bottomBar = {
+                if (Destination.entries.any { it.route == route }) {
+                    BottomBar(route, navController)
+                }
+            },
+        ) { padding ->
+            Routes(navController, books, insightsModel, backup, padding)
+        }
+    }
+}
+
+@Composable
+private fun Routes(
+    navController: NavHostController,
+    books: ActiveBooksViewModel,
+    insightsModel: ReadingInsightsViewModel,
+    backup: BackupViewModel,
+    padding: PaddingValues,
+) {
         NavHost(
             navController = navController,
             startDestination = Routes.READ,
@@ -152,25 +198,48 @@ fun FolioFlowNavigation(
                 )
             }
         }
-    }
 }
 
+/** A raised bar floating over the ground; the current screen's key is pressed in and lit. */
 @Composable
 private fun BottomBar(route: String?, navController: NavHostController) {
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+    val accent = LocalAccent.current
+    Row(
+        Modifier
+            .navigationBarsPadding()
+            .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 12.dp)
+            .fillMaxWidth()
+            .height(72.dp)
+            .raised(24.dp, SurfaceTone, depth = 8.dp)
+            .selectableGroup(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Destination.entries.forEach { destination ->
-            NavigationBarItem(
-                selected = route == destination.route,
-                onClick = {
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                icon = { Icon(destination.icon, contentDescription = null) },
-                label = { Text(destination.label) },
-            )
+            val selected = route == destination.route
+            val tint = if (selected) accent else InkFaint
+            Column(
+                Modifier
+                    .size(width = 76.dp, height = 56.dp)
+                    .then(if (selected) Modifier.pressedWell(16.dp) else Modifier)
+                    .clip(RoundedCornerShape(16.dp))
+                    .selectable(
+                        selected = selected,
+                        role = Role.Tab,
+                        onClick = {
+                            navController.navigate(destination.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
+            ) {
+                Icon(destination.icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+                Text(destination.label, style = MaterialTheme.typography.labelSmall, color = tint)
+            }
         }
     }
 }
@@ -184,6 +253,7 @@ private fun ReadRoute(
     val activeBooks by books.books.collectAsStateWithLifecycle()
     val lastBookId by books.lastBookId.collectAsStateWithLifecycle()
     val insights by insightsModel.insights.collectAsStateWithLifecycle()
+    val finished by books.finishedBooks.collectAsStateWithLifecycle()
     ActiveReadHubScreen(
         state = HubUiState(
             books = activeBooks,
@@ -191,6 +261,7 @@ private fun ReadRoute(
             pacing = insights.pacing,
             challengeLine = insights.challengeLine,
             streak = insights.challenges.streak,
+            booksRead = finished.size,
         ),
         actions = HubActions(
             onOpenChallenges = { navController.navigate(Routes.CHALLENGES) },

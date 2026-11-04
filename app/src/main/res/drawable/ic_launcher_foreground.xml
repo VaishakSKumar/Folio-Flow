@@ -1,17 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A small stack of three cards, echoing the book deck. -->
+<!-- The Recto R, centred in the adaptive icon's safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#2F5249"
-        android:pathData="M42,32h24a4,4 0,0 1,4 4v8H38v-8a4,4 0,0 1,4,-4z" />
-    <path
-        android:fillColor="#4A9483"
-        android:pathData="M38,38h32a4,4 0,0 1,4 4v8H34v-8a4,4 0,0 1,4,-4z" />
-    <path
-        android:fillColor="#7FC8B4"
-        android:pathData="M35,45h38a5,5 0,0 1,5 5v22a5,5 0,0 1,-5 5H35a5,5 0,0 1,-5,-5V50a5,5 0,0 1,5,-5z" />
+    <group
+        android:scaleX="0.48"
+        android:scaleY="0.48"
+        android:translateX="30"
+        android:translateY="30">
+        <path
+            android:pathData="M18,94 A12,12 0 0,1 6,82 V20 A14,14 0 0,1 20,6 H64 A30,30 0 0,1 83.3,59"
+            android:strokeColor="#FFF5F3EE"
+            android:strokeWidth="9" />
+        <path
+            android:pathData="M17,50 V25 A8,8 0 0,1 25,17 H64 A19,19 0 0,1 76.2,50.6"
+            android:strokeColor="#FFF5F3EE"
+            android:strokeWidth="9" />
+        <path
+            android:pathData="M28,28 H64 A8,8 0 0,1 69.1,42.1"
+            android:strokeColor="#FFF5F3EE"
+            android:strokeWidth="9" />
+        <path
+            android:pathData="M17,56 C27,44 52,36 66,52 L96,94"
+            android:strokeColor="#FFF5F3EE"
+            android:strokeWidth="9" />
+        <path
+            android:pathData="M28,94 V72 C28,62 46,56 56,66 L80,94"
+            android:strokeColor="#FFF5F3EE"
+            android:strokeWidth="9" />
+    </group>
 </vector>
