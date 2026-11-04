@@ -1,9 +1,9 @@
 package com.booktracker.ui.theme
 
+import android.graphics.BlurMaskFilter
 import android.graphics.Paint
-import androidx.compose.foundation.Canvas
+import android.graphics.RectF
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,86 +13,118 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.ColorUtils
 import com.booktracker.R
-import kotlin.random.Random
 
-// Add res/font/literata_variable.ttf and res/font/figtree_variable.ttf (both OFL, Google Fonts).
-val Literata = FontFamily(
-    Font(R.font.literata_variable, FontWeight.Normal),
-    Font(R.font.literata_variable, FontWeight.SemiBold),
-)
-val Figtree = FontFamily(
-    Font(R.font.figtree_variable, FontWeight.Normal),
-    Font(R.font.figtree_variable, FontWeight.Medium),
-    Font(R.font.figtree_variable, FontWeight.SemiBold),
+// res/font/inter_variable.ttf is Inter (OFL, Google Fonts); each weight is a point on its axis,
+// set explicitly because Android otherwise draws every weight at the file's default.
+@OptIn(ExperimentalTextApi::class)
+private fun interAt(weight: FontWeight) = Font(
+    R.font.inter_variable,
+    weight,
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
 )
 
-private val BoardBlack = Color(0xFF1A1815)
-private val PaperLow = Color(0xFF24211C)
-private val PaperHigh = Color(0xFF2E2A24)
-private val Ink = Color(0xFFEFE7D8)
-private val InkMuted = Color(0xFFB3A998)
-private val Verdigris = Color(0xFF7FC8B4)
-private val OnVerdigris = Color(0xFF10261F)
-private val Amber = Color(0xFFF2A65A)
-private val Hairline = Color(0x1FEFE7D8)
+val Inter = FontFamily(
+    interAt(FontWeight.Normal),
+    interAt(FontWeight.Medium),
+    interAt(FontWeight.SemiBold),
+    interAt(FontWeight.Bold),
+    interAt(FontWeight.ExtraBold),
+)
 
-val PaperColors = darkColorScheme(
-    primary = Verdigris,
-    onPrimary = OnVerdigris,
-    primaryContainer = Color(0xFF2F5249),
-    onPrimaryContainer = Color(0xFFD5F3E9),
-    secondary = InkMuted,
-    onSecondary = BoardBlack,
-    secondaryContainer = PaperHigh,
+// Never pure black: depth comes from light on the ground, not from borders.
+val Ground = Color(0xFF121212)
+val SurfaceTone = Color(0xFF1A1A1A)
+val Raised = Color(0xFF1E1E1E)
+val Well = Color(0xFF161616)
+val Ink = Color(0xFFEDEAE4)
+val InkSoft = Color(0xFFA39E96)
+val InkFaint = Color(0xFF8F8A83)
+
+/** The accent when there is no cover colour to use. */
+val Leather = Color(0xFFB07A52)
+val DeepGreen = Color(0xFF4E9A72)
+val Alert = Color(0xFFF0A49E)
+private val Hairline = Color(0x14EDEAE4)
+
+val RectoColors = darkColorScheme(
+    primary = Leather,
+    onPrimary = Ground,
+    primaryContainer = Color(0xFF3A2A20),
+    onPrimaryContainer = Color(0xFFF2DCC8),
+    secondary = InkSoft,
+    onSecondary = Ground,
+    secondaryContainer = Raised,
     onSecondaryContainer = Ink,
-    tertiary = Amber,
-    onTertiary = Color(0xFF2E1A05),
-    background = BoardBlack,
+    tertiary = Alert,
+    onTertiary = Color(0xFF2A1210),
+    error = Alert,
+    onError = Color(0xFF2A1210),
+    background = Ground,
     onBackground = Ink,
-    surface = BoardBlack,
+    surface = Ground,
     onSurface = Ink,
-    surfaceVariant = PaperHigh,
-    onSurfaceVariant = InkMuted,
-    surfaceContainerLow = PaperLow,
-    surfaceContainer = PaperLow,
-    surfaceContainerHigh = PaperHigh,
-    outline = Color(0xFF7D7567),
-    outlineVariant = Color(0xFF3B362E),
+    surfaceVariant = Raised,
+    onSurfaceVariant = InkSoft,
+    surfaceContainerLowest = Well,
+    surfaceContainerLow = SurfaceTone,
+    surfaceContainer = SurfaceTone,
+    surfaceContainerHigh = Raised,
+    surfaceContainerHighest = Color(0xFF262626),
+    outline = InkFaint,
+    outlineVariant = Color(0xFF2E2C29),
     // Snackbars use these; left unset, they would be Material's default lilac.
-    inverseSurface = Color(0xFFEFE7D8),
-    inverseOnSurface = Color(0xFF24211C),
-    inversePrimary = Color(0xFF2F6B5C),
+    inverseSurface = Ink,
+    inverseOnSurface = SurfaceTone,
+    inversePrimary = Color(0xFF7A4A2A),
 )
 
-val PaperTypography = Typography(
-    displaySmall = TextStyle(fontFamily = Literata, fontWeight = FontWeight.SemiBold, fontSize = 36.sp, lineHeight = 42.sp),
-    headlineSmall = TextStyle(fontFamily = Literata, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 30.sp),
-    titleMedium = TextStyle(fontFamily = Figtree, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 22.sp),
-    bodyMedium = TextStyle(fontFamily = Figtree, fontSize = 14.sp, lineHeight = 20.sp),
-    labelLarge = TextStyle(fontFamily = Figtree, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
-    labelMedium = TextStyle(fontFamily = Figtree, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
+private val Tight = (-0.02).em
+
+val RectoTypography = Typography(
+    displaySmall = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 36.sp, lineHeight = 42.sp, letterSpacing = Tight),
+    headlineLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.ExtraBold, fontSize = 34.sp, lineHeight = 40.sp, letterSpacing = Tight),
+    headlineMedium = TextStyle(fontFamily = Inter, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, lineHeight = 36.sp, letterSpacing = Tight),
+    headlineSmall = TextStyle(fontFamily = Inter, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp, lineHeight = 30.sp, letterSpacing = (-0.01).em),
+    titleLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, lineHeight = 26.sp),
+    titleMedium = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 22.sp),
+    bodyLarge = TextStyle(fontFamily = Inter, fontSize = 16.sp, lineHeight = 24.sp),
+    bodyMedium = TextStyle(fontFamily = Inter, fontSize = 14.sp, lineHeight = 20.sp),
+    labelLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
+    labelMedium = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
+    labelSmall = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 14.sp),
 )
 
-val PaperShapes = Shapes(
+val RectoShapes = Shapes(
     small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(16.dp),
     large = RoundedCornerShape(24.dp),
@@ -102,57 +134,50 @@ val PaperShapes = Shapes(
 @Immutable
 data class ReadingColors(
     val heat: List<Color> = listOf(
-        PaperHigh,
-        Color(0xFF33665A),
-        Color(0xFF4A9483),
-        Color(0xFF77C5B1),
-        Color(0xFFBFF0E2),
+        Color(0xFF242322),
+        Color(0xFF4A3326),
+        Color(0xFF7A5238),
+        Leather,
+        Color(0xFFE8C29E),
     ),
-    val ahead: Color = Verdigris,
+    val ahead: Color = Color(0xFF7FC9A0),
     val onPace: Color = Ink,
-    val behind: Color = Amber,
+    val behind: Color = Color(0xFFE2A34F),
     val hairline: Color = Hairline,
 )
 
 val LocalReadingColors = staticCompositionLocalOf { ReadingColors() }
 
+/** The current book's colour, shared so the deck glow, progress and active icons agree. */
+val LocalAccent = compositionLocalOf { Leather }
+
+/**
+ * Lightness 60–72% and saturation at most 75%, so any cover colour reads on [Ground] and dark text
+ * reads on it.
+ */
+fun tunedAccent(color: Color): Color {
+    val hsl = FloatArray(3)
+    ColorUtils.colorToHSL(color.toArgb(), hsl)
+    hsl[1] = hsl[1].coerceAtMost(0.75f)
+    hsl[2] = hsl[2].coerceIn(0.60f, 0.72f)
+    return Color(ColorUtils.HSLToColor(hsl))
+}
+
 @Composable
 fun BookTrackerTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = PaperColors,
-        typography = PaperTypography,
-        shapes = PaperShapes,
+        colorScheme = RectoColors,
+        typography = RectoTypography,
+        shapes = RectoShapes,
         content = content,
     )
 }
 
-/** Fine speckle drawn over a surface, so large dark areas read as paper stock. */
-@Composable
-fun BoxScope.PaperGrain(seed: Int = 7, alpha: Float = 0.035f) {
-    val specks = remember(seed) {
-        val random = Random(seed)
-        List(1400) { Offset(random.nextFloat(), random.nextFloat()) }
-    }
-    Canvas(Modifier.matchParentSize()) {
-        specks.forEachIndexed { index, speck ->
-            drawCircle(
-                color = if (index % 2 == 0) Color.White else Color.Black,
-                radius = 0.6.dp.toPx(),
-                center = Offset(speck.x * size.width, speck.y * size.height),
-                alpha = alpha,
-            )
-        }
-    }
-}
+val DeckFront = Color(0xFF202020)
+val StackSheetNear = Color(0xFF1C1C1C)
+val StackSheetFar = Color(0xFF191919)
 
-val DeckFront = PaperLow
-val StackSheetNear = Color(0xFF2A2620)
-val StackSheetFar = Color(0xFF211E19)
-
-/**
- * A blurred rounded rectangle behind the node. Shadows render on hardware canvases from API 28;
- * below that this draws only [fill], and the cards' hairline edge keeps them defined.
- */
+/** A blurred rounded rectangle behind the node; hardware shadow layers need API 28, the minSdk. */
 fun Modifier.softShadow(
     color: Color,
     blur: Dp,
@@ -168,20 +193,64 @@ fun Modifier.softShadow(
     }
     onDrawBehind {
         drawIntoCanvas { canvas ->
-            canvas.nativeCanvas.drawRoundRect(
-                0f,
-                0f,
-                size.width,
-                size.height,
-                corner.toPx(),
-                corner.toPx(),
-                paint,
-            )
+            canvas.nativeCanvas.drawRoundRect(0f, 0f, size.width, size.height, corner.toPx(), corner.toPx(), paint)
         }
     }
 }
 
-/** Raised paper: a dark shadow below right, a faint warm highlight above left, always opaque. */
+/** Extruded from the ground: a dark shadow below right, a faint highlight above left. */
+fun Modifier.raised(corner: Dp, fill: Color = Raised, depth: Dp = 6.dp): Modifier = this
+    .softShadow(Color(0x99000000), depth * 2.2f, fill, depth, depth, corner)
+    .softShadow(Color(0x0BFFFFFF), depth * 1.6f, fill, -depth * 0.6f, -depth * 0.6f, corner)
+
+/** Pressed into the ground: the shadow falls inside the top left edge, the light inside the bottom right. */
+fun Modifier.pressedWell(corner: Dp, fill: Color = Well): Modifier = drawWithCache {
+    val radius = corner.toPx()
+    val outline = Path().apply { addRoundRect(RoundRect(Rect(Offset.Zero, size), CornerRadius(radius))) }
+    val shift = 3.dp.toPx()
+    val bounds = RectF(0f, 0f, size.width, size.height)
+    fun edge(color: Color) = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+        strokeWidth = 6.dp.toPx()
+        this.color = color.toArgb()
+        maskFilter = BlurMaskFilter(5.dp.toPx(), BlurMaskFilter.Blur.NORMAL)
+    }
+    val shadow = edge(Color(0xB3000000))
+    val light = edge(Color(0x0DFFFFFF))
+    onDrawBehind {
+        drawPath(outline, fill)
+        clipPath(outline) {
+            drawIntoCanvas { canvas ->
+                val native = canvas.nativeCanvas
+                native.save()
+                native.translate(shift, shift)
+                native.drawRoundRect(bounds, radius, radius, shadow)
+                native.restore()
+                native.save()
+                native.translate(-shift, -shift)
+                native.drawRoundRect(bounds, radius, radius, light)
+                native.restore()
+            }
+        }
+    }
+}
+
+/** A soft circle of light, like a lamp behind the node. It spills past the node's bounds. */
+fun Modifier.ambientGlow(color: Color, strength: Float = 0.45f, reach: Float = 0.75f): Modifier = drawBehind {
+    val radius = size.maxDimension * reach
+    drawCircle(
+        Brush.radialGradient(
+            listOf(color.copy(alpha = strength), color.copy(alpha = strength * 0.35f), Color.Transparent),
+            center = center,
+            radius = radius,
+        ),
+        radius = radius,
+        center = center,
+    )
+}
+
+/** Opaque layered card for the deck, with a hairline of light along its top edge. */
 @Composable
 fun NeumorphicCard(
     modifier: Modifier = Modifier,
@@ -191,14 +260,12 @@ fun NeumorphicCard(
 ) {
     Box(
         modifier
-            .softShadow(Color(0x99000000), 18.dp, color, 8.dp, 10.dp)
-            .softShadow(Color(0x0FFFF0D7), 12.dp, color, (-5).dp, (-5).dp)
+            .softShadow(Color(0xA6000000), 22.dp, color, 10.dp, 12.dp)
+            .softShadow(Color(0x0AFFFFFF), 12.dp, color, (-5).dp, (-5).dp)
             .clip(shape)
             .background(color)
-            .border(1.dp, Hairline, shape),
+            .drawBehind { drawLine(Hairline, Offset(size.width * 0.06f, 0.5f), Offset(size.width * 0.94f, 0.5f), 1.dp.toPx()) },
     ) {
-        PaperGrain()
         content()
     }
 }
-

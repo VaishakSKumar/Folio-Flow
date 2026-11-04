@@ -128,6 +128,7 @@ private fun BookEntity.toFinishedBook(): FinishedBook {
         daysToComplete = daysToComplete ?: calculateDaysToComplete(startDate, finishDate, pausedDays),
         favorite = isFavorite,
         coverPath = coverPath,
+        glowColor = glowColor,
     )
 }
 

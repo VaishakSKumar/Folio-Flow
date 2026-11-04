@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Recto R: parallel strokes that turn the page forward. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <path
+        android:pathData="M18,94 A12,12 0 0,1 6,82 V20 A14,14 0 0,1 20,6 H64 A30,30 0 0,1 83.3,59"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="9" />
+    <path
+        android:pathData="M17,50 V25 A8,8 0 0,1 25,17 H64 A19,19 0 0,1 76.2,50.6"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="9" />
+    <path
+        android:pathData="M28,28 H64 A8,8 0 0,1 69.1,42.1"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="9" />
+    <path
+        android:pathData="M17,56 C27,44 52,36 66,52 L96,94"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="9" />
+    <path
+        android:pathData="M28,94 V72 C28,62 46,56 56,66 L80,94"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="9" />
+</vector>

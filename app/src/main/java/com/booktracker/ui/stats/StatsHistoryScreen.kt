@@ -1,7 +1,8 @@
 package com.booktracker.ui.stats
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,7 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,22 +27,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -58,14 +47,35 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.booktracker.ui.library.coverAccent
+import com.booktracker.ui.theme.Alert
+import com.booktracker.ui.theme.Ink
+import com.booktracker.ui.theme.InkSoft
+import com.booktracker.ui.theme.LocalAccent
 import com.booktracker.ui.theme.LocalReadingColors
+import com.booktracker.ui.theme.Raised
+import com.booktracker.ui.theme.RectoIcons
+import com.booktracker.ui.theme.SectionLabel
+import com.booktracker.ui.theme.SurfaceTone
+import com.booktracker.ui.theme.TactileCard
+import com.booktracker.ui.theme.TactileIconButton
+import com.booktracker.ui.theme.ambientGlow
+import com.booktracker.ui.theme.pressedWell
+import com.booktracker.ui.theme.raised
+import com.booktracker.ui.theme.softShadow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
@@ -100,6 +110,7 @@ data class FinishedBook(
     val readNumber: Int = 1,
     val favorite: Boolean = false,
     val coverPath: String? = null,
+    val glowColor: Int? = null,
 )
 
 @Immutable
@@ -143,11 +154,18 @@ fun StatsHistoryScreen(
 private fun StatsPane(state: StatsUiState, backupCard: @Composable () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(AveragePeriod.Day) }
     LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                "Stats",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(top = 8.dp).semantics { heading() },
+            )
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 state.averages.forEach { average ->
                     MetricCard(
                         average = average,
@@ -169,13 +187,7 @@ private fun StatsPane(state: StatsUiState, backupCard: @Composable () -> Unit) {
 
 @Composable
 internal fun PaperCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Surface(
-        modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, LocalReadingColors.current.hairline),
-        content = content,
-    )
+    TactileCard(modifier, content = content)
 }
 
 @Composable
@@ -191,21 +203,15 @@ private fun MetricCard(
         change.roundToInt() < 0 -> "▼ ${-change.roundToInt()}"
         else -> "No change"
     }
-    Surface(
-        modifier = modifier.selectable(selected = selected, role = Role.Tab, onClick = onClick),
-        shape = MaterialTheme.shapes.medium,
-        color = if (selected) {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
-        },
-        border = BorderStroke(
-            1.dp,
-            if (selected) MaterialTheme.colorScheme.primary else LocalReadingColors.current.hairline,
-        ),
+    // The chosen period is pressed in, like a key held down.
+    Box(
+        modifier
+            .then(if (selected) Modifier.pressedWell(16.dp) else Modifier.raised(16.dp, SurfaceTone))
+            .clip(MaterialTheme.shapes.medium)
+            .selectable(selected = selected, role = Role.Tab, onClick = onClick),
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(average.period.label, style = MaterialTheme.typography.labelMedium)
+            Text(average.period.label, style = MaterialTheme.typography.labelMedium, color = if (selected) LocalAccent.current else Ink)
             Text(
                 average.value.roundToInt().toString(),
                 style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum, lnum"),
@@ -226,8 +232,8 @@ private fun MetricCard(
 
 @Composable
 private fun TrendCard(average: RollingAverage) {
-    val bar = MaterialTheme.colorScheme.outline
-    val current = MaterialTheme.colorScheme.primary
+    val bar = Color(0xFF3A3733)
+    val current = LocalAccent.current
     val rule = MaterialTheme.colorScheme.onSurfaceVariant
     PaperCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -342,7 +348,11 @@ private fun HeatmapCard(state: StatsUiState) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private enum class VaultFilter(val label: String) { All("All"), Favourites("Favourites") }
+
+private val VaultDate = DateTimeFormatter.ofPattern("d MMM")
+
+/** The Vault: finished books as a grid, or as a timeline. Tapping a book shows its actions on it. */
 @Composable
 private fun ArchivePane(
     books: List<FinishedBook>,
@@ -350,27 +360,22 @@ private fun ArchivePane(
     actions: ArchiveActions,
 ) {
     var view by rememberSaveable { mutableStateOf(ArchiveView.Shelf) }
+    var filter by rememberSaveable { mutableStateOf(VaultFilter.All) }
     var revealedId by remember { mutableStateOf<Long?>(null) }
     var deleting by remember { mutableStateOf<FinishedBook?>(null) }
-    // Actions stay hidden until a book is tapped, so the shelf itself carries no buttons.
-    val overlay: @Composable (FinishedBook) -> Unit = { book ->
-        if (book.id == revealedId) {
-            ArchiveActionOverlay(
-                book = book,
-                onDismiss = { revealedId = null },
-                onToggleFavorite = { actions.onToggleFavorite(book.id) },
-                onOpen = {
-                    revealedId = null
-                    actions.onOpenBook(book.id)
-                },
-                onDelete = {
-                    revealedId = null
-                    deleting = book
-                },
-            )
-        }
-    }
-    val onReveal: (FinishedBook) -> Unit = { revealedId = it.id }
+    val favourites = books.count { it.favorite }
+    val shown = if (filter == VaultFilter.Favourites) books.filter { it.favorite } else books
+    val bookActions = VaultBookActions(
+        onToggleFavorite = { actions.onToggleFavorite(it.id) },
+        onOpen = {
+            revealedId = null
+            actions.onOpenBook(it.id)
+        },
+        onDelete = {
+            revealedId = null
+            deleting = it
+        },
+    )
     deleting?.let { book ->
         AlertDialog(
             onDismissRequest = { deleting = null },
@@ -387,150 +392,260 @@ private fun ArchivePane(
                         deleting = null
                         actions.onDeleteBook(book.id)
                     },
-                ) { Text("Delete") }
+                ) { Text("Delete", color = Alert) }
             },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel", color = Ink) } },
         )
     }
     Column(Modifier.fillMaxSize()) {
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(16.dp)) {
-            ArchiveView.entries.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = view == option,
-                    onClick = { view = option },
-                    shape = SegmentedButtonDefaults.itemShape(index, ArchiveView.entries.size),
-                ) { Text(option.label) }
+        Row(
+            Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column {
+                Text("Vault", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
+                Text(
+                    "${books.size} finished · " + if (favourites == 1) "1 favourite" else "$favourites favourites",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = InkSoft,
+                )
             }
-        }
-        if (books.isEmpty()) {
-            Text(
-                "Books you finish land here, with the days each one took.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp),
+            val toTimeline = view == ArchiveView.Shelf
+            TactileIconButton(
+                onClick = {
+                    revealedId = null
+                    view = if (toTimeline) ArchiveView.Timeline else ArchiveView.Shelf
+                },
+                icon = if (toTimeline) RectoIcons.Timeline else RectoIcons.Grid,
+                contentDescription = if (toTimeline) "Show as timeline" else "Show as grid",
+                size = 44.dp,
+                corner = 14.dp,
+                tint = InkSoft,
             )
-        } else {
-            Crossfade(view, label = "archiveView") { shown ->
-                when (shown) {
-                    ArchiveView.Shelf -> GridShelf(books, cover, onReveal, overlay)
-                    ArchiveView.Timeline -> TimelineView(books, cover, onReveal, overlay)
+        }
+        FilterTabs(filter, onSelect = {
+            revealedId = null
+            filter = it
+        })
+        when {
+            books.isEmpty() -> VaultEmpty("Books you finish land here, with the days each one took.")
+            shown.isEmpty() -> VaultEmpty("Tap a finished book, then the heart, to keep it here.")
+            else -> Crossfade(view, label = "vaultView") { shownView ->
+                when (shownView) {
+                    ArchiveView.Shelf -> VaultGrid(shown, revealedId, cover, onTap = { revealedId = if (revealedId == it.id) null else it.id }, bookActions)
+                    ArchiveView.Timeline -> TimelineView(
+                        shown,
+                        cover,
+                        onReveal = { revealedId = it.id },
+                        overlay = { book ->
+                            if (book.id == revealedId) {
+                                ArchiveActionOverlay(book, onDismiss = { revealedId = null }, bookActions)
+                            }
+                        },
+                    )
                 }
             }
         }
     }
 }
 
-/** Floats over the tapped book. A popup, because three 48dp buttons are wider than a shelf cover. */
+@Immutable
+private class VaultBookActions(
+    val onToggleFavorite: (FinishedBook) -> Unit,
+    val onOpen: (FinishedBook) -> Unit,
+    val onDelete: (FinishedBook) -> Unit,
+)
+
 @Composable
-private fun ArchiveActionOverlay(
-    book: FinishedBook,
-    onDismiss: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onOpen: () -> Unit,
-    onDelete: () -> Unit,
+private fun VaultEmpty(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = InkSoft,
+        modifier = Modifier.padding(24.dp),
+    )
+}
+
+/** A track pressed into the ground, with the chosen tab raised out of it. */
+@Composable
+private fun FilterTabs(selected: VaultFilter, onSelect: (VaultFilter) -> Unit) {
+    Row(
+        Modifier
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .fillMaxWidth()
+            .height(48.dp)
+            .pressedWell(16.dp)
+            .padding(5.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        VaultFilter.entries.forEach { option ->
+            val isSelected = option == selected
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .then(if (isSelected) Modifier.raised(12.dp, Color(0xFF222222), depth = 4.dp) else Modifier)
+                    .clip(RoundedCornerShape(12.dp))
+                    .selectable(selected = isSelected, role = Role.Tab, onClick = { onSelect(option) }),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    option.label,
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium),
+                    color = if (isSelected) Ink else InkSoft,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VaultGrid(
+    books: List<FinishedBook>,
+    revealedId: Long?,
+    cover: @Composable (FinishedBook, Modifier) -> Unit,
+    onTap: (FinishedBook) -> Unit,
+    actions: VaultBookActions,
 ) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
+    ) {
+        items(books, key = { it.id }) { book ->
+            VaultTile(book, book.id == revealedId, cover, onTap = { onTap(book) }, actions)
+        }
+    }
+}
+
+/** When tapped, the book lifts in its own light and shows Fav, Details and Delete on its cover. */
+@Composable
+private fun VaultTile(
+    book: FinishedBook,
+    revealed: Boolean,
+    cover: @Composable (FinishedBook, Modifier) -> Unit,
+    onTap: () -> Unit,
+    actions: VaultBookActions,
+) {
+    val lift by animateFloatAsState(if (revealed) 1f else 0f, spring(dampingRatio = 0.7f, stiffness = 400f), label = "lift")
+    val glow = coverAccent(book.coverPath, book.title, book.glowColor)
+    val shape = RoundedCornerShape(14.dp)
+    val days = if (book.daysToComplete == 1) "1 day" else "${book.daysToComplete} days"
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(Modifier.fillMaxWidth().height(172.dp)) {
+            if (lift > 0f) {
+                Box(Modifier.matchParentSize().graphicsLayer { alpha = lift }.ambientGlow(glow, 0.55f, 0.7f))
+            }
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        translationY = -6.dp.toPx() * lift
+                        val scale = 1f + 0.03f * lift
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                    .softShadow(Color(0x99000000), 16.dp, Raised, 6.dp, 8.dp, 14.dp)
+                    .clip(shape)
+                    .clickable(onClickLabel = if (revealed) "Hide actions" else "Show actions", onClick = onTap)
+                    .semantics { contentDescription = listOf(book.title, book.author).filter(String::isNotBlank).joinToString(" by ") },
+            ) {
+                cover(book.copy(author = ""), Modifier.fillMaxSize())
+                if (book.favorite && !revealed) {
+                    Icon(
+                        RectoIcons.FavouriteFilled,
+                        contentDescription = "Favourite",
+                        tint = Alert,
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp).size(18.dp),
+                    )
+                }
+                if (revealed) {
+                    Row(
+                        Modifier.matchParentSize().background(Color(0xB80A0A0A)),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        TileAction(
+                            icon = if (book.favorite) RectoIcons.FavouriteFilled else RectoIcons.Favourite,
+                            label = "Fav",
+                            description = if (book.favorite) "Remove from favourites" else "Add to favourites",
+                            tint = Alert,
+                            selected = book.favorite,
+                            onClick = { actions.onToggleFavorite(book) },
+                        )
+                        TileAction(RectoIcons.Info, "Details", "Open details and notes", Ink, onClick = { actions.onOpen(book) })
+                        TileAction(RectoIcons.Delete, "Delete", "Delete ${book.title}", Ink, onClick = { actions.onDelete(book) })
+                    }
+                }
+            }
+        }
+        Column {
+            Text(book.title, style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                "Finished ${book.finished.format(VaultDate)} · $days" + if (book.readNumber > 1) " · read ${book.readNumber}" else "",
+                style = MaterialTheme.typography.labelMedium,
+                color = InkSoft,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TileAction(
+    icon: ImageVector,
+    label: String,
+    description: String,
+    tint: Color,
+    selected: Boolean = false,
+    onClick: () -> Unit,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        TactileIconButton(onClick, icon, description, size = 44.dp, tint = tint, selected = selected)
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold), color = Ink)
+    }
+}
+
+/** Floats over the tapped book in the timeline, where rows are too short to hold the buttons. */
+@Composable
+private fun ArchiveActionOverlay(book: FinishedBook, onDismiss: () -> Unit, actions: VaultBookActions) {
     Popup(
         alignment = Alignment.Center,
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true),
     ) {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shadowElevation = 8.dp,
+        Row(
+            Modifier.raised(22.dp, SurfaceTone).padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row {
-                IconButton(onClick = onToggleFavorite) {
-                    Icon(
-                        if (book.favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = if (book.favorite) "Remove from favorites" else "Add to favorites",
-                        tint = MaterialTheme.colorScheme.tertiary,
-                    )
-                }
-                IconButton(onClick = onOpen) {
-                    Icon(Icons.Filled.Info, contentDescription = "Open details and notes")
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete book")
-                }
-            }
+            TileAction(
+                icon = if (book.favorite) RectoIcons.FavouriteFilled else RectoIcons.Favourite,
+                label = "Fav",
+                description = if (book.favorite) "Remove from favourites" else "Add to favourites",
+                tint = Alert,
+                selected = book.favorite,
+                onClick = { actions.onToggleFavorite(book) },
+            )
+            TileAction(RectoIcons.Info, "Details", "Open details and notes", Ink, onClick = { actions.onOpen(book) })
+            TileAction(RectoIcons.Delete, "Delete", "Delete ${book.title}", Ink, onClick = { actions.onDelete(book) })
         }
-    }
-}
-
-@Composable
-private fun FavoriteMark(modifier: Modifier = Modifier) {
-    Surface(modifier, shape = CircleShape, color = MaterialTheme.colorScheme.background) {
-        Icon(
-            Icons.Filled.Favorite,
-            contentDescription = "Favorite",
-            tint = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.padding(4.dp).size(14.dp),
-        )
     }
 }
 
 @Composable
 private fun DaysBadge(book: FinishedBook, modifier: Modifier = Modifier) {
     val label = if (book.daysToComplete == 1) "1 day" else "${book.daysToComplete} days"
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-                .semantics { contentDescription = "Took $label to complete" },
-        )
-    }
-}
-
-@Composable
-private fun GridShelf(
-    books: List<FinishedBook>,
-    cover: @Composable (FinishedBook, Modifier) -> Unit,
-    onReveal: (FinishedBook) -> Unit,
-    overlay: @Composable (FinishedBook) -> Unit,
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 104.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-    ) {
-        items(books, key = { it.id }) { book ->
-            // No horizontal grid spacing: each cell's plank touches the next, forming one shelf.
-            Column {
-                Box(
-                    Modifier
-                        .padding(horizontal = 6.dp)
-                        .clickable(onClickLabel = "Show actions") { onReveal(book) }
-                        .semantics { contentDescription = listOf(book.title, book.author).filter(String::isNotBlank).joinToString(" by ") },
-                ) {
-                    // The badge sits where a drawn cover prints its author; TalkBack still gets the name.
-                    cover(
-                        book.copy(author = ""),
-                        Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(2f / 3f)
-                            .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 4.dp, bottomEnd = 4.dp, bottomStart = 2.dp)),
-                    )
-                    DaysBadge(book, Modifier.align(Alignment.BottomStart).padding(6.dp))
-                    if (book.favorite) FavoriteMark(Modifier.align(Alignment.TopEnd).padding(4.dp))
-                    overlay(book)
-                }
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                )
-            }
-        }
-    }
+    Text(
+        label,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = modifier
+            .pressedWell(8.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .semantics { contentDescription = "Took $label to complete" },
+    )
 }
 
 @Composable
@@ -545,14 +660,10 @@ private fun TimelineView(
     val groups = remember(books) {
         books.sortedByDescending { it.finished }.groupBy { it.finished.format(monthFormat) }
     }
-    LazyColumn(contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+    LazyColumn(contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 24.dp)) {
         groups.forEach { (month, monthBooks) ->
             item(key = month) {
-                Text(
-                    month,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 12.dp),
-                )
+                SectionLabel(month, Modifier.padding(vertical = 12.dp))
             }
             items(monthBooks, key = { it.id }) { book ->
                 // The overlay sits outside the Row, where it would otherwise add a gap.
@@ -566,7 +677,7 @@ private fun TimelineView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        cover(book, Modifier.width(56.dp).height(84.dp).clip(RoundedCornerShape(3.dp)))
+                        cover(book, Modifier.width(56.dp).height(84.dp).clip(RoundedCornerShape(6.dp)))
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
                                 book.title,
@@ -582,10 +693,12 @@ private fun TimelineView(
                                     if (book.readNumber > 1) append(" · read ${book.readNumber}")
                                 },
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = InkSoft,
                             )
                         }
-                        if (book.favorite) FavoriteMark()
+                        if (book.favorite) {
+                            Icon(RectoIcons.FavouriteFilled, contentDescription = "Favourite", tint = Alert, modifier = Modifier.size(18.dp))
+                        }
                         DaysBadge(book)
                     }
                     overlay(book)

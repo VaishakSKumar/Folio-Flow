@@ -6,24 +6,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,8 +36,30 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.booktracker.ui.theme.Alert
+import com.booktracker.ui.theme.InkSoft
+import com.booktracker.ui.theme.Leather
+import com.booktracker.ui.theme.RectoIcons
+import com.booktracker.ui.theme.SectionLabel
+import com.booktracker.ui.theme.TactileButton
+import com.booktracker.ui.theme.TactileIconButton
+import com.booktracker.ui.theme.TactileTextField
+import com.booktracker.ui.theme.closeKeyboardOnBackgroundTap
+import com.booktracker.ui.theme.pressedWell
+import com.booktracker.ui.theme.tunedAccent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -103,6 +125,8 @@ fun AddBookScreen(
     val totalPages = pages.toIntOrNull()
     val startPage = currentPage.toIntOrNull() ?: 0
     val valid = title.isNotBlank() && totalPages != null && totalPages > 0 && startPage in 0..totalPages
+    // Before a cover is chosen the book will be bound in leather, so the button wears that colour.
+    val accent = if (coverUri == null && title.isNotBlank()) tunedAccent(CoverTexture.forTitle(title).glow) else Leather
 
     fun save() {
         saving = true
@@ -125,35 +149,35 @@ fun AddBookScreen(
             Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
+                .closeKeyboardOnBackgroundTap()
                 .statusBarsPadding()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Add a book", style = MaterialTheme.typography.headlineSmall)
-                TextButton(onClick = onBack) { Text("Cancel") }
+                Text("Add a book", style = MaterialTheme.typography.headlineSmall.copy(fontSize = MaterialTheme.typography.headlineSmall.fontSize * 1.08f), modifier = Modifier.semantics { heading() })
+                TactileIconButton(onClick = onBack, icon = RectoIcons.Close, contentDescription = "Close", size = 44.dp, corner = 14.dp, tint = InkSoft)
             }
             if (onSearch != null) {
-                OutlinedTextField(
+                TactileTextField(
                     value = query,
                     onValueChange = {
                         query = it
                         onSearch(it)
                     },
-                    label = { Text("Search title, author or ISBN") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Search title, author or ISBN",
+                    imeAction = ImeAction.Search,
                 )
             }
             if (onScanBarcode != null) {
-                OutlinedButton(onClick = onScanBarcode, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                    Text("Scan barcode")
-                }
+                TactileButton(onClick = onScanBarcode, modifier = Modifier.fillMaxWidth()) { Text("Scan barcode") }
             }
             results.forEach { book ->
                 Column(
@@ -166,57 +190,93 @@ fun AddBookScreen(
                     Text(
                         listOfNotNull(book.author, book.pages?.let { "$it pages" }).joinToString(" · "),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = InkSoft,
                     )
                 }
             }
-            if (onSearch != null || onScanBarcode != null) {
-                HorizontalDivider()
-                Text("Book details", style = MaterialTheme.typography.titleMedium)
+            if (onSearch != null || onScanBarcode != null) HorizontalDivider()
+
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                CoverWell(coverUri, title, onClick = { showCoverSheet = true })
+                Column(
+                    Modifier.weight(1f).height(160.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+                ) {
+                    SectionLabel("Cover image")
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("JPG", "PNG", "WEBP", "HEIC").forEach { type ->
+                            Text(
+                                type,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF222120))
+                                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                            )
+                        }
+                    }
+                    Text(
+                        "Up to 5 MB. Optional: the cover's colour lights your deck. Without one, the book gets a leather binding.",
+                        style = MaterialTheme.typography.labelMedium.copy(lineHeight = MaterialTheme.typography.bodyMedium.lineHeight),
+                        color = InkSoft,
+                    )
+                }
             }
-            OutlinedTextField(
+
+            TactileTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Title") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                label = "Title",
+                placeholder = "e.g. Middlemarch",
+                capitalization = KeyboardCapitalization.Words,
+                imeAction = ImeAction.Next,
             )
-            OutlinedTextField(
+            TactileTextField(
                 value = author,
                 onValueChange = { author = it },
-                label = { Text("Author (optional)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                label = "Author (optional)",
+                placeholder = "e.g. George Eliot",
+                capitalization = KeyboardCapitalization.Words,
+                imeAction = ImeAction.Next,
             )
-            NumberField(pages, { pages = it }, "Total pages")
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                BookCover(
-                    coverPath = coverUri,
-                    title = title,
-                    author = "",
-                    modifier = Modifier.width(56.dp).height(84.dp).clip(RoundedCornerShape(3.dp)),
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TactileTextField(
+                    value = pages,
+                    onValueChange = { pages = it.filter(Char::isDigit).take(5) },
+                    label = "Total pages",
+                    placeholder = "320",
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next,
+                    modifier = Modifier.weight(1f),
                 )
-                OutlinedButton(
-                    onClick = { showCoverSheet = true },
-                    modifier = Modifier.height(48.dp),
-                ) { Text(if (coverUri == null) "Add cover image" else "Change cover") }
+                TactileTextField(
+                    value = currentPage,
+                    onValueChange = { currentPage = it.filter(Char::isDigit).take(5) },
+                    label = "On page (optional)",
+                    placeholder = "0",
+                    keyboardType = KeyboardType.Number,
+                    isError = totalPages != null && startPage > totalPages,
+                    modifier = Modifier.weight(1f),
+                )
             }
-            NumberField(currentPage, { currentPage = it }, "Already on page (optional)")
             if (saveFailed) {
                 Text(
                     "Couldn't save this book. Please try again.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.tertiary,
+                    color = Alert,
                 )
             }
-            Button(
-                onClick = ::save,
-                enabled = valid && !saving,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-            ) { Text("Add to Reading now") }
+            Spacer(Modifier.height(4.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TactileButton(onClick = onBack, corner = 18.dp, modifier = Modifier.weight(1f).height(56.dp)) { Text("Cancel") }
+                TactileButton(
+                    onClick = ::save,
+                    enabled = valid && !saving,
+                    accent = accent,
+                    corner = 18.dp,
+                    modifier = Modifier.weight(1f).height(56.dp),
+                ) { Text("Add to deck") }
+            }
         }
         addedId?.let { id -> BookAddedOverlay(title.trim(), onFinished = { onAdded(id) }) }
     }
@@ -237,14 +297,35 @@ fun AddBookScreen(
     }
 }
 
+/** A slot pressed into the page; once an image is chosen it shows the cover itself. */
 @Composable
-private fun NumberField(value: String, onValueChange: (String) -> Unit, label: String) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = { new -> onValueChange(new.filter(Char::isDigit).take(5)) },
-        label = { Text(label) },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth(),
-    )
+private fun CoverWell(coverUri: String?, title: String, onClick: () -> Unit) {
+    val dash = Color(0xFF3A3733)
+    Box(
+        Modifier
+            .width(112.dp)
+            .height(160.dp)
+            .pressedWell(16.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(role = Role.Button, onClickLabel = if (coverUri == null) "Add cover" else "Change cover", onClick = onClick)
+            .drawBehind {
+                if (coverUri == null) {
+                    drawRoundRect(
+                        color = dash,
+                        cornerRadius = CornerRadius(16.dp.toPx()),
+                        style = Stroke(2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(9.dp.toPx(), 7.dp.toPx()))),
+                    )
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (coverUri != null) {
+            BookCover(coverUri, title, "", Modifier.fillMaxSize())
+        } else {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(RectoIcons.Upload, contentDescription = null, tint = InkSoft, modifier = Modifier.size(26.dp))
+                Text("Add cover", style = MaterialTheme.typography.labelLarge, color = InkSoft)
+            }
+        }
+    }
 }

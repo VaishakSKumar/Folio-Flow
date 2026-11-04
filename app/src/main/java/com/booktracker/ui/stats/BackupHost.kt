@@ -106,7 +106,7 @@ fun BackupHost(
         content {
             BackupCard(
                 state = state,
-                onExport = { exportLauncher.launch("FolioFlow-backup-${LocalDate.now()}.zip") },
+                onExport = { exportLauncher.launch("Recto-backup-${LocalDate.now()}.zip") },
                 onImport = model::askForFile,
             )
         }
@@ -124,14 +124,14 @@ fun BackupHost(
         )
         is BackupDialog.WrongFile -> RetryDialog(
             title = "This file can't be imported",
-            message = "${dialog.fileName} isn't a Folio Flow backup. Choose a .zip file made with Export backup.",
+            message = "${dialog.fileName} isn't a Recto backup. Choose a .zip file made with Export backup.",
             onRetry = { importLauncher.launch(arrayOf(ANY_FILE)) },
             onDismiss = model::dismissDialog,
         )
         is BackupDialog.TooNew -> RetryDialog(
-            title = "Update Folio Flow first",
+            title = "Update Recto first",
             message = "${dialog.fileName} was made by a newer version of the app. " +
-                "Update Folio Flow, then import it again.",
+                "Update Recto, then import it again.",
             onRetry = { importLauncher.launch(arrayOf(ANY_FILE)) },
             onDismiss = model::dismissDialog,
         )
@@ -189,14 +189,14 @@ private fun FormatDialog(onChoose: () -> Unit, onDismiss: () -> Unit) {
         title = { Text("Import a backup") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Choose a .zip backup that was made with Export backup in Folio Flow.")
+                Text("Choose a .zip backup that was made with Export backup in Recto or Folio Flow.")
                 FileBox {
                     Text(
                         "The file looks like this",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Text("FolioFlow-backup-${LocalDate.now()}.zip", style = MaterialTheme.typography.labelLarge)
+                    Text("Recto-backup-${LocalDate.now()}.zip", style = MaterialTheme.typography.labelLarge)
                 }
                 Text("Other files, such as PDF, Excel, CSV or photos, can't be imported.")
             }

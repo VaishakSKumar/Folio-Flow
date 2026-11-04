@@ -1,20 +1,29 @@
-# Folio Flow
+# Recto
 
 A tactile Android reading tracker with forgiving streaks, pacing insights and book notes.
 Native Kotlin, Jetpack Compose and Material 3. All data stays on the device.
+
+Recto is the right-hand page: always moving forward. The look is dark and tactile. Surfaces are
+raised or pressed into a #121212 ground with soft shadows, and the current book's cover colour lights
+the deck, progress bars and active icons.
 
 ## Features
 
 - **Book deck.** Reading books form a physical stack. Swipe the top card or tap a dot to rotate it.
   Covers glow in a colour taken from the image with Palette, and books without a cover get a leather
   binding with its own glow.
-- **Page logging on the card.** `+1`, `+5` and `Custom` sit on the book itself. There are no timers.
+- **Page steppers.** `[-] 1 [+]` and `[-] 5 [+]` under the deck, plus Set exact page. There are no
+  timers. When the taps pause, a celebration counts up the pages just logged.
+- **Book actions.** Finished, Notes and Delete sit under the steppers for the book on top.
 - **Analytics.** Rolling daily, weekly and monthly averages, a 53-week heatmap, and an estimated
   finish once a book has three reading days.
 - **Challenges.** Daily tiers (Tiny, Steady, Deep), weekly and yearly milestones, up to two Rest Days,
   earned Bookmarks that protect a streak, and a Busy week switch.
-- **Archive.** Grid and Timeline views with Days to Complete badges. Tap a book to reveal Favorite and
-  Delete. Finishing a book offers Undo, and any book can be restored to active reading.
+- **Vault.** Finished books in a two-column grid or a timeline, filtered by All or Favourites. Tap a
+  book to lift it and reveal Fav, Details and Delete. Finishing a book offers Undo, and any book can
+  be restored to active reading.
+- **Keyboard.** It opens only when a text field is tapped, sits below that field, closes on Done or a
+  tap outside, and never follows you to another screen.
 - **Notes.** Each book has its own Notes tab for notes, takeaways and quotes.
 - **Backup.** Stats can export everything to one `.zip` file and import it back, replacing what's in
   the app. An import can be undone right after. Files are not encrypted, and nothing leaves the phone
@@ -57,4 +66,4 @@ screen until they are connected.
 
 ## Fonts
 
-Literata and Figtree are used under the SIL Open Font License 1.1.
+Inter is used under the SIL Open Font License 1.1.
